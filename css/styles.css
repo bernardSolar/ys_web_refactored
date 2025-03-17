@@ -1,0 +1,116 @@
+/* Main POS System styles */
+body {
+    padding-bottom: 20px;
+}
+
+/* Product button styling */
+.product-button {
+    height: 100px;
+    white-space: normal;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    margin-bottom: 6px;
+    transition: all 0.2s ease;
+}
+
+.product-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.product-button span {
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Order panel styling */
+.order-panel {
+    width: 100%;
+}
+
+.order-header {
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 4px 4px 0 0;
+    border-bottom: none;
+    margin: 0;
+    width: 100%;
+    padding: 5px 10px;
+}
+
+.order-items-container {
+    height: 400px;
+    border: 1px solid #ccc;
+    border-radius: 0 0 4px 4px;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.order-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 5px;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.no-items {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Delivery charge info */
+.delivery-charge-info {
+    font-size: 0.9rem;
+    margin-top: 5px;
+    font-style: italic;
+    color: #6c757d;
+    /* Removed "display: block !important" to allow hiding */
+}
+
+/* Product grid layout */
+.product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 5px;
+}
+
+.product-grid-item {
+    width: 20%;
+    padding: 3px;
+    box-sizing: border-box;
+}
+
+/* Tab content */
+.tab-pane {
+    padding: 5px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* Confirmation modal styles */
+#modal-order-summary {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.modal-item {
+    margin-bottom: 10px;
+}
+
+.modal-item-name {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.modal-item-details {
+    margin-bottom: 10px;
+}
