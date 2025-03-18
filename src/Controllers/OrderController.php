@@ -9,6 +9,7 @@ namespace POS\Controllers;
 
 use POS\Services\OrderService;
 use POS\Services\AuthService;
+use POS\Database\DeliverySlotRepository;
 
 class OrderController extends BaseController
 {
@@ -18,17 +19,25 @@ class OrderController extends BaseController
     private $orderService;
     
     /**
+     * @var DeliverySlotRepository
+     */
+    private $slotRepository;
+    
+    /**
      * Constructor
      * 
      * @param AuthService|null $authService Authentication service
      * @param OrderService|null $orderService Order service
+     * @param DeliverySlotRepository|null $slotRepository Delivery slot repository
      */
     public function __construct(
         ?AuthService $authService = null,
-        ?OrderService $orderService = null
+        ?OrderService $orderService = null,
+        ?DeliverySlotRepository $slotRepository = null
     ) {
         parent::__construct($authService);
         $this->orderService = $orderService ?: new OrderService();
+        $this->slotRepository = $slotRepository ?: new DeliverySlotRepository();
     }
     
     /**
@@ -73,14 +82,47 @@ class OrderController extends BaseController
         $user = $this->authService->getCurrentUser();
         error_log('OrderController::placeOrder user: ' . ($user ? $user->getId() : 'null'));
         
-        // Place order
-        $result = $this->orderService->placeOrder($data['items'], $data['total'], $user);
+        // Extract delivery information if provided
+        $deliveryDate = isset($data['delivery_date']) ? $data['delivery_date'] : null;
+        $deliveryTime = isset($data['delivery_time']) ? $data['delivery_time'] : null;
+        $deliveryNotes = isset($data['delivery_notes']) ? $data['delivery_notes'] : null;
+        $slotId = isset($data['slot_id']) ? (int)$data['slot_id'] : null;
+        
+        // Place order with delivery information
+        $result = $this->orderService->placeOrder(
+            $data['items'], 
+            $data['total'], 
+            $user,
+            $deliveryDate,
+            $deliveryTime,
+            $deliveryNotes
+        );
+        
         error_log('OrderController::placeOrder result: ' . json_encode($result));
         
         if (!$result['success']) {
             error_log('OrderController::placeOrder error: ' . $result['message']);
             $this->errorResponse($result['message'], 500);
             return;
+        }
+        
+        // If we have a slot ID and the order was successful, update the slot with the order ID
+        if ($slotId && isset($result['orderId'])) {
+            try {
+                $this->slotRepository->update($slotId, [
+                    'order_id' => $result['orderId']
+                ]);
+                
+                // Add slot information to the result
+                $result['deliverySlot'] = [
+                    'slot_id' => $slotId,
+                    'date' => $deliveryDate,
+                    'time' => $deliveryTime
+                ];
+            } catch (\Exception $e) {
+                // Log the error but don't fail the order - the delivery information is already saved with the order
+                error_log('Error updating delivery slot: ' . $e->getMessage());
+            }
         }
         
         $this->jsonResponse($result);
@@ -106,7 +148,7 @@ class OrderController extends BaseController
         }
         
         // Get all recent orders
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10; // Reasonable default
         
         // Only show user's own orders unless admin
         $userId = null;
