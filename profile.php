@@ -11,6 +11,17 @@ require_once 'inc/session_check.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
     <link href="css/profile.css" rel="stylesheet">
+    <style>
+        .order-details-text {
+            white-space: pre-line;
+            font-family: inherit;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            border: 1px solid #dee2e6;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
     <div class="profile-container">
@@ -96,7 +107,7 @@ require_once 'inc/session_check.php';
                     <p><strong>Total Amount:</strong> £<span id="detail-total"></span></p>
                 </div>
                 <h4>Items:</h4>
-                <pre id="order-details-text" class="order-details-text"></pre>
+                <div id="order-details-text" class="order-details-text"></div>
             </div>
         </div>
     </div>
