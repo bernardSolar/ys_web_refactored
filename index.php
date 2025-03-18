@@ -23,6 +23,10 @@ require_once 'inc/session_check.php';
             text-align: right;
             margin-top: 15px;
         }
+        /* Add specific style for Sunday header (first column) */
+        #calendar-weekdays div:first-child {
+            color: #dc3545; /* Red color for Sunday */
+        }
     </style>
 </head>
 <body>
