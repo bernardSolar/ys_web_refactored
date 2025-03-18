@@ -55,6 +55,21 @@ class Order
     private $items = [];
     
     /**
+     * @var string|null
+     */
+    private $deliveryDate;
+    
+    /**
+     * @var string|null
+     */
+    private $deliveryTime;
+    
+    /**
+     * @var string|null
+     */
+    private $deliveryNotes;
+    
+    /**
      * Constructor
      * 
      * @param array $data Order data
@@ -124,6 +139,19 @@ class Order
             $this->items = $data['items'];
         }
         
+        // New delivery fields
+        if (isset($data['delivery_date'])) {
+            $this->deliveryDate = $data['delivery_date'];
+        }
+        
+        if (isset($data['delivery_time'])) {
+            $this->deliveryTime = $data['delivery_time'];
+        }
+        
+        if (isset($data['delivery_notes'])) {
+            $this->deliveryNotes = $data['delivery_notes'];
+        }
+        
         return $this;
     }
     
@@ -155,7 +183,10 @@ class Order
             'order_datetime' => $this->orderDateTime,
             'order_text' => $this->orderText,
             'total_amount' => $this->totalAmount,
-            'items' => $this->items
+            'items' => $this->items,
+            'delivery_date' => $this->deliveryDate,
+            'delivery_time' => $this->deliveryTime,
+            'delivery_notes' => $this->deliveryNotes
         ];
     }
     
@@ -181,7 +212,10 @@ class Order
             'delivery_info' => [
                 'delivery_charge' => $this->deliveryCharge,
                 'delivery_address' => $this->deliveryAddress ?: '',
-                'organisation' => $this->organisation ?: ''
+                'organisation' => $this->organisation ?: '',
+                'delivery_date' => $this->deliveryDate ?: '',
+                'delivery_time' => $this->deliveryTime ?: '',
+                'delivery_notes' => $this->deliveryNotes ?: ''
             ],
             'contact_info' => null
         ];
@@ -194,11 +228,11 @@ class Order
             if (json_last_error() !== JSON_ERROR_NONE) {
                 error_log('JSON encoding error: ' . json_last_error_msg());
                 // Fallback if encoding fails
-                $this->orderText = '{"error":"Failed to encode order details"}';
+                $this->orderText = '{\"error\":\"Failed to encode order details\"}';
             }
         } catch (\Exception $e) {
             error_log('Error generating order text: ' . $e->getMessage());
-            $this->orderText = '{"error":"Exception while encoding order"}';
+            $this->orderText = '{\"error\":\"Exception while encoding order\"}';
         }
         
         return $this->orderText;
@@ -492,6 +526,41 @@ class Order
         error_log('Order::setItems called with: ' . json_encode($items));
         $this->items = $items;
         $this->updateTotals(); // Recalculate totals when items change
+        return $this;
+    }
+    
+    // New getters and setters for delivery fields
+    
+    public function getDeliveryDate()
+    {
+        return $this->deliveryDate;
+    }
+    
+    public function setDeliveryDate($deliveryDate)
+    {
+        $this->deliveryDate = $deliveryDate;
+        return $this;
+    }
+    
+    public function getDeliveryTime()
+    {
+        return $this->deliveryTime;
+    }
+    
+    public function setDeliveryTime($deliveryTime)
+    {
+        $this->deliveryTime = $deliveryTime;
+        return $this;
+    }
+    
+    public function getDeliveryNotes()
+    {
+        return $this->deliveryNotes;
+    }
+    
+    public function setDeliveryNotes($deliveryNotes)
+    {
+        $this->deliveryNotes = $deliveryNotes;
         return $this;
     }
 }
