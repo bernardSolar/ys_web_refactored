@@ -197,6 +197,7 @@ class DeliveryScheduler {
             if (day.status === 'today') dayElement.classList.add('today');
             
             // Disable Sundays (day 0 in JavaScript's getDay())
+            // Sunday is 0, Monday is 1, ..., Saturday is 6
             const dayDate = new Date(day.date);
             if (dayDate.getDay() === 0) {
                 dayElement.classList.add('disabled');
