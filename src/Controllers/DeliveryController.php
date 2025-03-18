@@ -92,19 +92,24 @@ class DeliveryController extends BaseController
         $endDate = clone $startDate;
         $endDate->modify('last day of this month');
         
-        // Add days from previous/next months to complete the calendar weeks
-        $firstDayOfWeek = $startDate->format('N'); // 1 (Monday) to 7 (Sunday)
-        $startDate->modify('-' . ($firstDayOfWeek - 1) . ' days'); // Adjust to start on Monday
+        // Get days from previous month to start the calendar on Sunday
+        $firstDayOfWeek = (int)$startDate->format('w'); // 0 (Sunday) to 6 (Saturday)
+        if ($firstDayOfWeek > 0) {
+            $startDate->modify('-' . $firstDayOfWeek . ' days'); // Adjust to start on Sunday
+        }
         
-        $lastDayOfWeek = $endDate->format('N');
-        $endDate->modify('+' . (7 - $lastDayOfWeek) . ' days'); // Adjust to end on Sunday
+        // Get days from next month to end the calendar on Saturday
+        $lastDayOfWeek = (int)$endDate->format('w');
+        if ($lastDayOfWeek < 6) {
+            $endDate->modify('+' . (6 - $lastDayOfWeek) . ' days'); // Adjust to end on Saturday
+        }
         
         // Create calendar structure
         $calendar = [
             'month' => $month,
             'year' => $year,
             'days' => [],
-            'weekDays' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            'weekDays' => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
             'monthName' => date('F', mktime(0, 0, 0, $month, 1, $year)),
             'prevMonth' => $month == 1 ? 12 : $month - 1,
             'prevYear' => $month == 1 ? $year - 1 : $year,
@@ -121,6 +126,8 @@ class DeliveryController extends BaseController
         $currentDate = clone $startDate;
         while ($currentDate <= $endDate) {
             $dateString = $currentDate->format('Y-m-d');
+            $dayOfWeek = (int)$currentDate->format('w'); // 0 (Sunday) to 6 (Saturday)
+            
             $dayInfo = [
                 'date' => $dateString,
                 'day' => (int)$currentDate->format('j'),
@@ -141,7 +148,7 @@ class DeliveryController extends BaseController
                 $dayInfo['isAvailable'] = false;
                 $dayInfo['status'] = 'too_soon';
                 $dayInfo['reason'] = 'Must book at least 2 days in advance';
-            } elseif ($currentDate->format('w') == 0) { // Sunday is 0 in date('w') format
+            } elseif ($dayOfWeek === 0) { // Sunday (0)
                 $dayInfo['isAvailable'] = false;
                 $dayInfo['status'] = 'weekend';
                 $dayInfo['reason'] = 'No deliveries on Sundays';
@@ -180,8 +187,9 @@ class DeliveryController extends BaseController
             return;
         }
         
-        // Check if the date is a Sunday
-        if ($requestedDate->format('w') == 0) { // 0 = Sunday in date('w') format
+        // Check if the date is a Sunday (0)
+        $dayOfWeek = (int)$requestedDate->format('w');
+        if ($dayOfWeek === 0) {
             $this->errorResponse('No deliveries on Sundays', 400);
             return;
         }
@@ -264,7 +272,8 @@ class DeliveryController extends BaseController
         
         // Check if the date is a Sunday
         $requestedDate = new DateTime($date);
-        if ($requestedDate->format('w') == 0) { // 0 = Sunday in date('w') format
+        $dayOfWeek = (int)$requestedDate->format('w');
+        if ($dayOfWeek === 0) { // Sunday = 0
             $this->errorResponse('No deliveries on Sundays', 400);
             return;
         }
