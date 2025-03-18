@@ -31,8 +31,11 @@
     padding: 5px;
 }
 
-.calendar-weekday:first-child {
-    color: #dc3545; /* Red for Sunday */
+/* Remove the first-child selector that was incorrectly making Saturdays red */
+/* Apply color to the Sunday column directly by targeting days with class 'weekend' */
+.calendar-day.weekend {
+    background-color: #f8d7da;
+    color: #842029;
 }
 
 .calendar-day {
@@ -68,11 +71,6 @@
     background-color: #f8f9fa;
     color: #adb5bd;
     cursor: not-allowed;
-}
-
-.calendar-day.weekend {
-    background-color: #f8d7da;
-    color: #842029;
 }
 
 .calendar-day.other-month {
