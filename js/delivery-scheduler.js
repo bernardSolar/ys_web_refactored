@@ -146,6 +146,12 @@ class DeliveryScheduler {
             const weekday = document.createElement('div');
             weekday.className = 'calendar-weekday';
             weekday.textContent = this.weekdays[i];
+            
+            // Set Sunday (first column) to red color
+            if (i === 0) {
+                weekday.style.color = '#dc3545';
+            }
+            
             this.calendarWeekdays.appendChild(weekday);
         }
     }
@@ -190,35 +196,12 @@ class DeliveryScheduler {
             const dayElement = document.createElement('div');
             dayElement.className = 'calendar-day';
             
-            // Add classes based on day properties
+            // Add classes based on day properties from backend
             if (!day.isCurrentMonth) dayElement.classList.add('other-month');
             if (!day.isAvailable) dayElement.classList.add('disabled');
             if (day.status === 'weekend') dayElement.classList.add('weekend');
             if (day.status === 'today') dayElement.classList.add('today');
-            
-            // Disable Sundays (day 0 in JavaScript's getDay())
-            // Sunday is 0, Monday is 1, ..., Saturday is 6
-            const dayDate = new Date(day.date);
-            if (dayDate.getDay() === 0) { // 0 = Sunday
-                dayElement.classList.add('disabled');
-                dayElement.classList.add('weekend');
-                day.isAvailable = false;
-                day.reason = 'No deliveries on Sundays';
-            }
-            
-            // IMPORTANT: We need to ensure Saturdays are NOT disabled
-            // Make sure Saturdays (day 6) are explicitly marked as available
-            if (dayDate.getDay() === 6) { // 6 = Saturday
-                // Only mark available if it's not otherwise unavailable
-                // (e.g., in the past or too soon)
-                if (day.isAvailable) {
-                    day.isAvailable = true;
-                    // Remove disabled class if it was added somehow
-                    dayElement.classList.remove('disabled');
-                    dayElement.classList.remove('weekend');
-                }
-            }
-            
+
             // Day content
             const dayNumber = document.createElement('div');
             dayNumber.textContent = day.day;
@@ -241,6 +224,17 @@ class DeliveryScheduler {
                 // Add tooltip with reason
                 if (day.reason) {
                     dayElement.title = day.reason;
+                }
+            }
+            
+            // Add an extra check to ensure Saturdays are properly enabled
+            // unless they're disabled for other reasons (e.g., past date)
+            const dayDate = new Date(day.date);
+            if (dayDate.getDay() === 6) { // Saturday is 6
+                if (day.isAvailable) {
+                    // Remove any potentially incorrect classes
+                    dayElement.classList.remove('disabled');
+                    dayElement.classList.remove('weekend');
                 }
             }
             
@@ -380,6 +374,13 @@ class DeliveryScheduler {
     reserveDeliverySlot() {
         if (!this.selectedDate || !this.selectedTimeSlot) {
             alert('Please select a date and time for delivery');
+            return;
+        }
+        
+        // Prevent Sunday reservations on the client side as well
+        const selectedDay = new Date(this.selectedDate).getDay();
+        if (selectedDay === 0) { // Sunday = 0
+            alert('Sorry, we do not deliver on Sundays');
             return;
         }
         
