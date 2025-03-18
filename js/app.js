@@ -133,8 +133,22 @@ class POSApplication {
         // Calculate total without delivery charge (backend will add it)
         const subtotal = this.orderManager.calculateTotal(this.currentOrder);
         
+        // Prepare order data
+        const orderData = {
+            items: this.currentOrder,
+            total: subtotal
+        };
+        
+        // Add delivery info if available
+        if (window.deliveryInfo) {
+            orderData.delivery_date = window.deliveryInfo.date;
+            orderData.delivery_time = window.deliveryInfo.time;
+            orderData.delivery_notes = window.deliveryInfo.notes;
+            orderData.slot_id = window.deliveryInfo.slotId;
+        }
+        
         // Save order to database via API
-        this.orderManager.placeOrder(this.currentOrder, subtotal)
+        this.orderManager.placeOrder(orderData)
             .then(response => {
                 if (response.success) {
                     // Close the modal
@@ -144,8 +158,9 @@ class POSApplication {
                         if (modal) modal.hide();
                     }
                     
-                    // Clear the order
+                    // Clear the order and any stored delivery info
                     this.currentOrder = [];
+                    window.deliveryInfo = null;
                     this.uiManager.updateOrderDisplay(this.currentOrder, this.deliveryCharge);
                     
                     // Show success message
@@ -153,6 +168,13 @@ class POSApplication {
                     if (response.orderInfo && response.orderInfo.totalWithDelivery) {
                         message += ` Total: £${response.orderInfo.totalWithDelivery.toFixed(2)}`;
                     }
+                    
+                    // Add delivery confirmation if available
+                    if (response.orderInfo && response.orderInfo.deliveryDate) {
+                        const deliveryDate = new Date(response.orderInfo.deliveryDate);
+                        message += `\nDelivery scheduled for: ${deliveryDate.toLocaleDateString('en-GB')} at ${response.orderInfo.deliveryTime}`;
+                    }
+                    
                     alert(message);
                     
                     // Refresh products including popular products
