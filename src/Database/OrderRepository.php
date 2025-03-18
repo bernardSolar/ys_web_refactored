@@ -31,7 +31,10 @@ class OrderRepository extends Repository
                         delivery_charge = ?,
                         order_datetime = ?,
                         order_text = ?,
-                        total_amount = ?
+                        total_amount = ?,
+                        delivery_date = ?,
+                        delivery_time = ?,
+                        delivery_notes = ?
                     WHERE order_id = ?
                 ";
                 
@@ -43,6 +46,9 @@ class OrderRepository extends Repository
                     $order->getOrderDateTime(),
                     $order->getOrderText(),
                     $order->getTotalAmount(),
+                    $order->getDeliveryDate(),
+                    $order->getDeliveryTime(),
+                    $order->getDeliveryNotes(),
                     $order->getId()
                 ]);
                 
@@ -52,8 +58,9 @@ class OrderRepository extends Repository
                 $sql = "
                     INSERT INTO order_history (
                         user_id, organisation, delivery_address, delivery_charge,
-                        order_datetime, order_text, total_amount
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        order_datetime, order_text, total_amount,
+                        delivery_date, delivery_time, delivery_notes
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ";
                 
                 // Debug order data
@@ -63,7 +70,10 @@ class OrderRepository extends Repository
                     'delivery_address' => $order->getDeliveryAddress(),
                     'delivery_charge' => $order->getDeliveryCharge(),
                     'datetime' => $order->getOrderDateTime(),
-                    'total' => $order->getTotalAmount()
+                    'total' => $order->getTotalAmount(),
+                    'delivery_date' => $order->getDeliveryDate(),
+                    'delivery_time' => $order->getDeliveryTime(),
+                    'delivery_notes' => $order->getDeliveryNotes()
                 ]));
                 
                 $params = [
@@ -73,7 +83,10 @@ class OrderRepository extends Repository
                     $order->getDeliveryCharge() ?: 0,
                     $order->getOrderDateTime(),
                     $order->getOrderText() ?: '{}',
-                    $order->getTotalAmount()
+                    $order->getTotalAmount(),
+                    $order->getDeliveryDate(),
+                    $order->getDeliveryTime(),
+                    $order->getDeliveryNotes()
                 ];
                 
                 // Log parameters being passed to query
@@ -104,7 +117,8 @@ class OrderRepository extends Repository
     {
         $sql = "
             SELECT order_id, user_id, organisation, delivery_address,
-                   delivery_charge, order_datetime, order_text, total_amount
+                   delivery_charge, order_datetime, order_text, total_amount,
+                   delivery_date, delivery_time, delivery_notes
             FROM order_history
             WHERE order_id = ?
         ";
@@ -134,7 +148,8 @@ class OrderRepository extends Repository
                 // Get orders for specific user
                 $sql = "
                     SELECT order_id, user_id, organisation, delivery_address, 
-                           delivery_charge, order_datetime, order_text, total_amount
+                           delivery_charge, order_datetime, order_text, total_amount,
+                           delivery_date, delivery_time, delivery_notes
                     FROM order_history
                     WHERE user_id = ?
                     ORDER BY order_datetime DESC
@@ -146,7 +161,8 @@ class OrderRepository extends Repository
                 // Get all recent orders
                 $sql = "
                     SELECT order_id, user_id, organisation, delivery_address, 
-                           delivery_charge, order_datetime, order_text, total_amount
+                           delivery_charge, order_datetime, order_text, total_amount,
+                           delivery_date, delivery_time, delivery_notes
                     FROM order_history
                     ORDER BY order_datetime DESC
                     LIMIT ?
@@ -183,7 +199,8 @@ class OrderRepository extends Repository
             
             $sql = "
                 SELECT order_id, user_id, organisation, delivery_address, 
-                       delivery_charge, order_datetime, order_text, total_amount
+                       delivery_charge, order_datetime, order_text, total_amount,
+                       delivery_date, delivery_time, delivery_notes
                 FROM order_history
                 WHERE user_id = ?
                 ORDER BY order_datetime DESC
@@ -202,6 +219,64 @@ class OrderRepository extends Repository
         } catch (\Exception $e) {
             error_log("Error in OrderRepository::findByUserId: " . $e->getMessage());
             // Return empty array instead of throwing to avoid breaking the frontend
+            return [];
+        }
+    }
+    
+    /**
+     * Find orders by delivery date
+     * 
+     * @param string $date Delivery date in Y-m-d format
+     * @return Order[]
+     */
+    public function findByDeliveryDate($date)
+    {
+        try {
+            $sql = "
+                SELECT order_id, user_id, organisation, delivery_address, 
+                       delivery_charge, order_datetime, order_text, total_amount,
+                       delivery_date, delivery_time, delivery_notes
+                FROM order_history
+                WHERE delivery_date = ?
+                ORDER BY delivery_time ASC
+            ";
+            
+            $rows = $this->fetchAll($sql, [$date]);
+            
+            $orders = [];
+            foreach ($rows as $row) {
+                $orders[] = new Order($row);
+            }
+            
+            return $orders;
+        } catch (\Exception $e) {
+            error_log("Error in OrderRepository::findByDeliveryDate: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Get reserved time slots for a specific date
+     *
+     * @param string $date Delivery date in Y-m-d format
+     * @return array Array of reserved time slots (e.g., ["09:00", "14:00"])
+     */
+    public function getReservedTimeSlots($date)
+    {
+        try {
+            $sql = "
+                SELECT delivery_time
+                FROM order_history
+                WHERE delivery_date = ?
+                AND delivery_time IS NOT NULL
+            ";
+            
+            $rows = $this->fetchAll($sql, [$date]);
+            $timeSlots = array_column($rows, 'delivery_time');
+            
+            return $timeSlots;
+        } catch (\Exception $e) {
+            error_log("Error in OrderRepository::getReservedTimeSlots: " . $e->getMessage());
             return [];
         }
     }
