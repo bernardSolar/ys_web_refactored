@@ -202,8 +202,25 @@ class Database
             "    order_datetime TEXT NOT NULL," .
             "    order_text TEXT NOT NULL," .
             "    total_amount REAL NOT NULL," .
+            "    delivery_date DATE," .
+            "    delivery_time VARCHAR(10)," .
+            "    delivery_notes TEXT," .
             "    FOREIGN KEY (user_id) REFERENCES users (id)" .
             ");"   
+        );
+        
+        // Create the delivery_slots table (new for delivery scheduler feature)
+        $this->connection->exec("
+            CREATE TABLE IF NOT EXISTS delivery_slots (
+                slot_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date DATE NOT NULL,
+                time_slot VARCHAR(10) NOT NULL,
+                order_id INTEGER,
+                status VARCHAR(20) DEFAULT 'reserved',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (order_id) REFERENCES order_history (order_id),
+                UNIQUE(date, time_slot)
+            );"
         );
         
         if (Config::get('app.debug')) {
