@@ -233,31 +233,63 @@ class ProfilePage {
         let formattedText = '';
         
         // Items section
-        orderDetails.items.forEach(item => {
-            formattedText += `${item.index}. ${item.name} (x${item.quantity})    £${item.price.toFixed(2)} each\n`;
-            formattedText += `   Subtotal: £${item.subtotal.toFixed(2)}\n`;
+        orderDetails.items.forEach((item, index) => {
+            const quantity = item.count || item.quantity || 1;
+            const itemTotal = item.price * quantity;
+            formattedText += `${index + 1}. ${item.name} (x${quantity})    £${parseFloat(item.price).toFixed(2)} each\n`;
+            formattedText += `   Subtotal: £${itemTotal.toFixed(2)}\n`;
         });
         
         formattedText += '\n';
         
+        // Subtotals by category if present
+        if (orderDetails.subtotals && Object.keys(orderDetails.subtotals).length > 0) {
+            formattedText += 'Category Subtotals:\n';
+            for (const [category, amount] of Object.entries(orderDetails.subtotals)) {
+                formattedText += `   ${category}: £${parseFloat(amount).toFixed(2)}\n`;
+            }
+            formattedText += '\n';
+        }
+        
         // Summary section
-        formattedText += `Subtotal: £${orderDetails.summary.subtotal.toFixed(2)}\n`;
+        if (orderDetails.summary) {
+            formattedText += `Subtotal: £${parseFloat(orderDetails.summary.subtotal).toFixed(2)}\n`;
+            
+            // Add delivery charge from summary if present
+            if (orderDetails.summary.delivery_charge !== undefined) {
+                formattedText += `Delivery Charge: £${parseFloat(orderDetails.summary.delivery_charge).toFixed(2)}\n`;
+            }
+            
+            // Total from summary
+            formattedText += `\nTotal: £${parseFloat(orderDetails.summary.total).toFixed(2)}\n`;
+        }
         
         // Add delivery info if present
         if (orderDetails.delivery_info) {
-            formattedText += `Delivery Charge: £${orderDetails.delivery_info.delivery_charge.toFixed(2)}\n`;
-            formattedText += `Delivery Address:\n${orderDetails.delivery_info.delivery_address}\n`;
-            formattedText += `Organisation: ${orderDetails.delivery_info.organisation}\n`;
+            formattedText += '\nDelivery Information:\n';
+            formattedText += `   Delivery Charge: £${parseFloat(orderDetails.delivery_info.delivery_charge).toFixed(2)}\n`;
+            
+            if (orderDetails.delivery_info.delivery_address) {
+                formattedText += `   Delivery Address: ${orderDetails.delivery_info.delivery_address}\n`;
+            }
+            
+            if (orderDetails.delivery_info.organisation) {
+                formattedText += `   Organisation: ${orderDetails.delivery_info.organisation}\n`;
+            }
         }
         
         // Add contact info if present
         if (orderDetails.contact_info) {
-            formattedText += `Contact: ${orderDetails.contact_info.name} (${orderDetails.contact_info.email})\n`;
+            formattedText += '\nContact Information:\n';
+            if (orderDetails.contact_info.name) {
+                formattedText += `   Name: ${orderDetails.contact_info.name}\n`;
+            }
+            if (orderDetails.contact_info.email) {
+                formattedText += `   Email: ${orderDetails.contact_info.email}\n`;
+            }
         }
         
-        // Total
-        formattedText += `\nTotal: £${orderDetails.summary.total.toFixed(2)}\n`;
-        formattedText += 'Thank you for your order!';
+        formattedText += '\nThank you for your order!';
         
         detailsContainer.textContent = formattedText;
     }
