@@ -88,20 +88,16 @@ class OrderManager {
     
     /**
      * Place an order via the API
-     * @param {array} orderItems - The items in the order
-     * @param {number} total - The total price
+     * @param {object} orderData - The order data containing items, total, and optional delivery info
      * @returns {Promise} Promise that resolves to the API response
      */
-    placeOrder(orderItems, total) {
+    placeOrder(orderData) {
         return fetch(`${this.apiBase}/place_order.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                items: orderItems,
-                total: total
-            })
+            body: JSON.stringify(orderData)
         })
         .then(response => {
             if (!response.ok) {
