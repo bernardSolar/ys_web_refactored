@@ -199,11 +199,24 @@ class DeliveryScheduler {
             // Disable Sundays (day 0 in JavaScript's getDay())
             // Sunday is 0, Monday is 1, ..., Saturday is 6
             const dayDate = new Date(day.date);
-            if (dayDate.getDay() === 0) {
+            if (dayDate.getDay() === 0) { // 0 = Sunday
                 dayElement.classList.add('disabled');
                 dayElement.classList.add('weekend');
                 day.isAvailable = false;
                 day.reason = 'No deliveries on Sundays';
+            }
+            
+            // IMPORTANT: We need to ensure Saturdays are NOT disabled
+            // Make sure Saturdays (day 6) are explicitly marked as available
+            if (dayDate.getDay() === 6) { // 6 = Saturday
+                // Only mark available if it's not otherwise unavailable
+                // (e.g., in the past or too soon)
+                if (day.isAvailable) {
+                    day.isAvailable = true;
+                    // Remove disabled class if it was added somehow
+                    dayElement.classList.remove('disabled');
+                    dayElement.classList.remove('weekend');
+                }
             }
             
             // Day content
