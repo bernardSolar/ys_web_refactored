@@ -141,7 +141,7 @@ class DeliveryController extends BaseController
                 $dayInfo['isAvailable'] = false;
                 $dayInfo['status'] = 'too_soon';
                 $dayInfo['reason'] = 'Must book at least 2 days in advance';
-            } elseif ($currentDate->format('N') == 7) { // Sunday (7 in ISO-8601 format)
+            } elseif ($currentDate->format('w') == 0) { // Sunday is 0 in date('w') format
                 $dayInfo['isAvailable'] = false;
                 $dayInfo['status'] = 'weekend';
                 $dayInfo['reason'] = 'No deliveries on Sundays';
@@ -181,7 +181,7 @@ class DeliveryController extends BaseController
         }
         
         // Check if the date is a Sunday
-        if ($requestedDate->format('N') == 7) { // 7 = Sunday in ISO-8601 format
+        if ($requestedDate->format('w') == 0) { // 0 = Sunday in date('w') format
             $this->errorResponse('No deliveries on Sundays', 400);
             return;
         }
@@ -259,6 +259,13 @@ class DeliveryController extends BaseController
         // Check if slot is available
         if ($this->slotRepository->isSlotReserved($date, $timeSlot)) {
             $this->errorResponse('This time slot is already reserved', 409);
+            return;
+        }
+        
+        // Check if the date is a Sunday
+        $requestedDate = new DateTime($date);
+        if ($requestedDate->format('w') == 0) { // 0 = Sunday in date('w') format
+            $this->errorResponse('No deliveries on Sundays', 400);
             return;
         }
         
