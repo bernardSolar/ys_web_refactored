@@ -196,6 +196,15 @@ class DeliveryScheduler {
             if (day.status === 'weekend') dayElement.classList.add('weekend');
             if (day.status === 'today') dayElement.classList.add('today');
             
+            // Disable Sundays (day 0 in JavaScript's getDay())
+            const dayDate = new Date(day.date);
+            if (dayDate.getDay() === 0) {
+                dayElement.classList.add('disabled');
+                dayElement.classList.add('weekend');
+                day.isAvailable = false;
+                day.reason = 'No deliveries on Sundays';
+            }
+            
             // Day content
             const dayNumber = document.createElement('div');
             dayNumber.textContent = day.day;
