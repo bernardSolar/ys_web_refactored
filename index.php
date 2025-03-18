@@ -10,6 +10,7 @@ require_once 'inc/session_check.php';
     <title>POS System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
+    <link href="css/delivery-scheduler.css" rel="stylesheet">
     <style>
         .organisation-name {
             font-size: 1.5rem;
@@ -112,8 +113,83 @@ require_once 'inc/session_check.php';
                     <h5 id="modal-order-total" class="mt-3"></h5>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="schedule-delivery-button">Schedule Delivery</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="modal-go-back-button">Go Back</button>
                     <button type="button" class="btn btn-success" id="modal-proceed-button">Proceed with Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delivery scheduler modal -->
+    <div class="modal fade" id="delivery-scheduler-modal" tabindex="-1" aria-labelledby="schedulerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="schedulerModalLabel">Reserve a Delivery Slot</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Step 1: Date Selection -->
+                    <div class="scheduler-step">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Select a Date</div>
+                    </div>
+                    
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <button class="btn btn-sm btn-outline-secondary" id="prev-month-btn">
+                                <span aria-hidden="true">&laquo;</span> Prev
+                            </button>
+                            <h3 class="calendar-title" id="calendar-month-year">March 2025</h3>
+                            <button class="btn btn-sm btn-outline-secondary" id="next-month-btn">
+                                Next <span aria-hidden="true">&raquo;</span>
+                            </button>
+                        </div>
+                        
+                        <div class="calendar-grid" id="calendar-weekdays">
+                            <!-- Weekday headers will be added by JavaScript -->
+                        </div>
+                        
+                        <div class="calendar-grid" id="calendar-days">
+                            <!-- Calendar days will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Time Selection -->
+                    <div class="scheduler-step">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Select a Time</div>
+                    </div>
+                    
+                    <div class="time-slots-container">
+                        <div class="time-slots-grid" id="time-slots-grid">
+                            <!-- Time slots will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Delivery Notes -->
+                    <div class="scheduler-step">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Add Delivery Notes (Optional)</div>
+                    </div>
+                    
+                    <div class="delivery-notes-container">
+                        <textarea 
+                            class="delivery-notes-textarea" 
+                            id="delivery-notes" 
+                            placeholder="e.g. Notes for driver, feedback or product suggestions..."
+                        ></textarea>
+                    </div>
+                    
+                    <!-- Selected delivery slot summary -->
+                    <div class="alert alert-primary mt-3" id="selected-slot-info" style="display: none;">
+                        <strong>Selected Delivery Slot:</strong> <span id="selected-date-display"></span> at <span id="selected-time-display"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="reserve-slot-button">Reserve Delivery Slot</button>
                 </div>
             </div>
         </div>
@@ -124,6 +200,7 @@ require_once 'inc/session_check.php';
     <script src="js/product-manager.js"></script>
     <script src="js/order-manager.js"></script>
     <script src="js/ui-manager.js"></script>
+    <script src="js/delivery-scheduler.js"></script>
     <script src="js/app.js"></script>
     
     <script>
