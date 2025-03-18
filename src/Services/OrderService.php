@@ -44,14 +44,26 @@ class OrderService
      * @param array $items Order items
      * @param float $subtotal Order subtotal
      * @param User|null $user User placing the order
+     * @param string|null $deliveryDate Preferred delivery date (YYYY-MM-DD)
+     * @param string|null $deliveryTime Preferred delivery time (HH:MM)
+     * @param string|null $deliveryNotes Delivery notes
      * @return array Result with order ID and status
      */
-    public function placeOrder(array $items, $subtotal, $user = null)
-    {
+    public function placeOrder(
+        array $items, 
+        $subtotal, 
+        $user = null, 
+        $deliveryDate = null,
+        $deliveryTime = null,
+        $deliveryNotes = null
+    ) {
         // Debug info
         error_log('OrderService::placeOrder called with items: ' . json_encode($items));
         error_log('Subtotal: ' . $subtotal);
         error_log('User: ' . ($user ? $user->getId() : 'null'));
+        error_log('Delivery Date: ' . ($deliveryDate ?: 'null'));
+        error_log('Delivery Time: ' . ($deliveryTime ?: 'null'));
+        error_log('Delivery Notes: ' . ($deliveryNotes ?: 'null'));
         
         // Create a new order
         $order = new Order();
@@ -75,6 +87,19 @@ class OrderService
             if (isset($user['delivery_charge'])) $order->setDeliveryCharge($user['delivery_charge']);
         } else {
             error_log('No valid user data provided');
+        }
+        
+        // Set delivery information if provided
+        if ($deliveryDate) {
+            $order->setDeliveryDate($deliveryDate);
+        }
+        
+        if ($deliveryTime) {
+            $order->setDeliveryTime($deliveryTime);
+        }
+        
+        if ($deliveryNotes) {
+            $order->setDeliveryNotes($deliveryNotes);
         }
         
         // Calculate total and generate order text
@@ -113,7 +138,9 @@ class OrderService
                 'orderInfo' => [
                     'hasDelivery' => ($user !== null),
                     'deliveryCharge' => $user ? $user->getDeliveryCharge() : 0,
-                    'totalWithDelivery' => $order->getTotalAmount()
+                    'totalWithDelivery' => $order->getTotalAmount(),
+                    'deliveryDate' => $deliveryDate,
+                    'deliveryTime' => $deliveryTime
                 ]
             ];
             
