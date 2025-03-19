@@ -103,8 +103,12 @@ require_once 'inc/session_check.php';
                 <h3>Order Details</h3>
                 <div class="mb-3">
                     <p><strong>Order ID:</strong> <span id="detail-order-id"></span></p>
-                    <p><strong>Date:</strong> <span id="detail-date"></span></p>
+                    <p><strong>Order Date:</strong> <span id="detail-date"></span></p>
                     <p><strong>Total Amount:</strong> £<span id="detail-total"></span></p>
+                    <!-- New delivery slot info -->
+                    <div id="delivery-slot-info" class="hidden">
+                        <p><strong>Preferred Delivery Slot:</strong> <span id="detail-delivery-slot"></span></p>
+                    </div>
                 </div>
                 <h4>Items:</h4>
                 <div id="order-details-text" class="order-details-text"></div>
