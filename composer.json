@@ -1,0 +1,24 @@
+{
+    "name": "bernardsolar/ys_web_refactored",
+    "description": "Web-based version of the York Supplies POS system, designed for GoDaddy hosting",
+    "type": "project",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "behat/behat": "^3.12",
+        "behat/mink": "^1.10",
+        "behat/mink-extension": "^2.3",
+        "behat/mink-selenium2-driver": "^1.6",
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "POS\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit",
+        "behat": "./vendor/bin/behat"
+    }
+}
