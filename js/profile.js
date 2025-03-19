@@ -198,6 +198,32 @@ class ProfilePage {
                     document.getElementById('detail-date').textContent = formattedDate;
                     document.getElementById('detail-total').textContent = parseFloat(order.total_amount).toFixed(2);
                     
+                    // Check for delivery information
+                    const deliverySlotInfo = document.getElementById('delivery-slot-info');
+                    if (order.delivery_date && order.delivery_time) {
+                        // Format delivery date
+                        const deliveryDate = new Date(order.delivery_date);
+                        const formattedDeliveryDate = deliveryDate.toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                        
+                        // Format time (convert 24h to 12h)
+                        let [hours, minutes] = order.delivery_time.split(':');
+                        hours = parseInt(hours);
+                        const ampm = hours >= 12 ? 'PM' : 'AM';
+                        hours = hours % 12 || 12;
+                        const formattedTime = `${hours}:${minutes} ${ampm}`;
+                        
+                        // Display the delivery slot information
+                        document.getElementById('detail-delivery-slot').textContent = `${formattedDeliveryDate} at ${formattedTime}`;
+                        deliverySlotInfo.classList.remove('hidden');
+                    } else {
+                        deliverySlotInfo.classList.add('hidden');
+                    }
+                    
                     // Handle order_text content - try to parse as JSON
                     try {
                         // Try to parse as JSON
