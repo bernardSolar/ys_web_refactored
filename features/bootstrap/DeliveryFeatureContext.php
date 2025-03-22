@@ -9,30 +9,43 @@ use Behat\Behat\Context\Context;
 use Behat\Behat\Tester\Exception\PendingException;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
-use Behat\MinkExtension\Context\MinkContext;
 
 /**
  * Features context for Delivery Scheduling feature
  */
-class DeliveryFeatureContext extends MinkContext implements Context
+class DeliveryFeatureContext implements Context
 {
+    /**
+     * @var \Behat\MinkExtension\Context\MinkContext
+     */
+    private $minkContext;
+    
+    /**
+     * @BeforeScenario
+     */
+    public function gatherContexts(\Behat\Behat\Hook\Scope\BeforeScenarioScope $scope)
+    {
+        $environment = $scope->getEnvironment();
+        $this->minkContext = $environment->getContext('Behat\MinkExtension\Context\MinkContext');
+    }
+    
     /**
      * @Given I am logged in as a registered user
      */
     public function iAmLoggedInAsARegisteredUser()
     {
         // Visit login page
-        $this->visit('/login.php');
+        $this->minkContext->visit('/login.php');
         
         // Fill in login form
-        $this->fillField('username', 'testuser');
-        $this->fillField('password', 'password123');
+        $this->minkContext->fillField('username', 'testuser');
+        $this->minkContext->fillField('password', 'password123');
         
         // Submit login form
-        $this->pressButton('Log In');
+        $this->minkContext->pressButton('Log In');
         
         // Verify login success
-        $this->assertPageContainsText('Order Summary');
+        $this->minkContext->assertPageContainsText('Order Summary');
     }
     
     /**
@@ -41,13 +54,13 @@ class DeliveryFeatureContext extends MinkContext implements Context
     public function iHaveItemsInMyShoppingCart()
     {
         // Visit main page
-        $this->visit('/index.php');
+        $this->minkContext->visit('/index.php');
         
         // Click on a product to add to cart
-        $this->clickLink('Sylvagrow Ericaceous 40ltr');
+        $this->minkContext->clickLink('Sylvagrow Ericaceous 40ltr');
         
         // Verify the product is in the cart
-        $this->assertElementContainsText('#order-list', 'Sylvagrow Ericaceous 40ltr');
+        $this->minkContext->assertElementContainsText('#order-list', 'Sylvagrow Ericaceous 40ltr');
     }
     
     /**
@@ -55,7 +68,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iClick($button)
     {
-        $this->pressButton($button);
+        $this->minkContext->pressButton($button);
     }
     
     /**
@@ -63,8 +76,8 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iClickInTheConfirmationModal($linkText)
     {
-        $this->getSession()->wait(1000);
-        $this->pressButton($linkText);
+        $this->minkContext->getSession()->wait(1000);
+        $this->minkContext->pressButton($linkText);
     }
     
     /**
@@ -72,7 +85,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iShouldSeeTheDeliverySchedulerModal()
     {
-        $this->assertElementContainsText('.modal-title', 'Reserve a Delivery Slot');
+        $this->minkContext->assertElementContainsText('.modal-title', 'Reserve a Delivery Slot');
     }
     
     /**
@@ -81,7 +94,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
     public function theCurrentMonthShouldBeDisplayedInTheCalendar()
     {
         $currentMonth = date('F Y');
-        $this->assertElementContainsText('#calendar-month-year', $currentMonth);
+        $this->minkContext->assertElementContainsText('#calendar-month-year', $currentMonth);
     }
     
     /**
@@ -106,7 +119,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
                 throw new \Exception("Button '$buttonText' not mapped to an ID");
         }
         
-        $this->getSession()->getPage()->find('css', $buttonId)->click();
+        $this->minkContext->getSession()->getPage()->find('css', $buttonId)->click();
     }
     
     /**
@@ -116,7 +129,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
     {
         $nextMonth = new \DateTime('first day of next month');
         $expectedMonth = $nextMonth->format('F Y');
-        $this->assertElementContainsText('#calendar-month-year', $expectedMonth);
+        $this->minkContext->assertElementContainsText('#calendar-month-year', $expectedMonth);
     }
     
     /**
@@ -125,7 +138,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
     public function theCalendarShouldReturnToTheCurrentMonth()
     {
         $currentMonth = date('F Y');
-        $this->assertElementContainsText('#calendar-month-year', $currentMonth);
+        $this->minkContext->assertElementContainsText('#calendar-month-year', $currentMonth);
     }
     
     /**
@@ -133,11 +146,11 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iOpenTheDeliveryScheduler()
     {
-        $this->visit('/index.php');
-        $this->clickLink('Sylvagrow Ericaceous 40ltr');
-        $this->pressButton('Place Order');
-        $this->getSession()->wait(1000);
-        $this->pressButton('Schedule Delivery');
+        $this->minkContext->visit('/index.php');
+        $this->minkContext->clickLink('Sylvagrow Ericaceous 40ltr');
+        $this->minkContext->pressButton('Place Order');
+        $this->minkContext->getSession()->wait(1000);
+        $this->minkContext->pressButton('Schedule Delivery');
     }
     
     /**
@@ -145,9 +158,9 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function allSundaysInTheCalendarShouldBeDisabled()
     {
-        $this->getSession()->wait(500); // Wait for calendar to load
+        $this->minkContext->getSession()->wait(500); // Wait for calendar to load
         
-        $result = $this->getSession()->evaluateScript(
+        $result = $this->minkContext->getSession()->evaluateScript(
             "return document.querySelectorAll('.calendar-day')[0].classList.contains('disabled');"
         );
         
@@ -161,7 +174,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function sundaysShouldBeDisplayedInRed()
     {
-        $redColorFound = $this->getSession()->evaluateScript(
+        $redColorFound = $this->minkContext->getSession()->evaluateScript(
             "return document.querySelectorAll('#calendar-weekdays div')[0].style.color === 'rgb(220, 53, 69)';"
         );
         
@@ -202,7 +215,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return true;
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Day availability not correctly configured");
@@ -223,7 +236,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return todayElement && todayElement.classList.contains('disabled');
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Today's date is not disabled");
@@ -247,7 +260,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return tomorrowElement && tomorrowElement.classList.contains('disabled');
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Tomorrow's date is not disabled");
@@ -278,7 +291,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return validDays.every(day => !day.classList.contains('disabled'));
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Dates $days or more days ahead are not correctly enabled");
@@ -290,7 +303,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iSelectAValidDateDaysFromNow($days)
     {
-        $this->getSession()->wait(500); // Wait for calendar to load
+        $this->minkContext->getSession()->wait(500); // Wait for calendar to load
         
         $futureDate = date('j', strtotime("+$days days"));
         
@@ -308,7 +321,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return false;
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Could not select date $days days from now");
@@ -320,7 +333,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function theDateShouldBeHighlighted()
     {
-        $highlighted = $this->getSession()->evaluateScript(
+        $highlighted = $this->minkContext->getSession()->evaluateScript(
             "return document.querySelector('.calendar-day.selected') !== null;"
         );
         
@@ -334,8 +347,8 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function theTimeSlotSelectionShouldAppear()
     {
-        $this->assertElementExists('#time-slots-grid');
-        $this->assertElementExists('.time-slot');
+        $this->minkContext->assertElementExists('#time-slots-grid');
+        $this->minkContext->assertElementExists('.time-slot');
     }
     
     /**
@@ -351,7 +364,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iShouldSeeAvailableTimeSlotsBetweenAnd($startHour, $startMin, $endHour, $endMin)
     {
-        $this->getSession()->wait(500); // Wait for slots to load
+        $this->minkContext->getSession()->wait(500); // Wait for slots to load
         
         $script = "
             const slots = Array.from(document.querySelectorAll('.time-slot'));
@@ -373,7 +386,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return slots.length > 0 && hasStartSlot && hasEndSlot;
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Time slots not available in the expected range");
@@ -393,7 +406,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return !lunchSlot || lunchSlot.classList.contains('disabled');
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Lunch slot $hour:$min is available when it should be disabled");
@@ -405,7 +418,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iSelectTheTimeSlot($timeSlot)
     {
-        $this->getSession()->wait(500); // Wait for slots to load
+        $this->minkContext->getSession()->wait(500); // Wait for slots to load
         
         $script = "
             const timeSlot = '$timeSlot';
@@ -419,7 +432,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return false;
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Could not select time slot $timeSlot");
@@ -431,7 +444,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function theTimeSlotShouldBeHighlighted()
     {
-        $highlighted = $this->getSession()->evaluateScript(
+        $highlighted = $this->minkContext->getSession()->evaluateScript(
             "return document.querySelector('.time-slot.selected') !== null;"
         );
         
@@ -445,7 +458,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function theSelectedSlotInformationShouldBeDisplayed()
     {
-        $this->assertElementExists('#selected-slot-info');
+        $this->minkContext->assertElementExists('#selected-slot-info');
         $this->assertElementIsVisible('#selected-slot-info');
     }
     
@@ -465,7 +478,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
                 throw new \Exception("Button '$buttonText' not mapped to an ID");
         }
         
-        $disabled = $this->getSession()->evaluateScript(
+        $disabled = $this->minkContext->getSession()->evaluateScript(
             "return document.querySelector('$buttonId').disabled;"
         );
         
@@ -489,7 +502,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iEnterInTheDeliveryNotesField($notes)
     {
-        $this->fillField('delivery-notes', $notes);
+        $this->minkContext->fillField('delivery-notes', $notes);
     }
     
     /**
@@ -500,8 +513,8 @@ class DeliveryFeatureContext extends MinkContext implements Context
         // This would need to place the order and verify in the database
         // For now, we'll just check that notes are in the modal
         $this->iClick('Reserve Delivery Slot');
-        $this->getSession()->wait(1000);
-        $this->assertElementContainsText('#modal-delivery-info', 'Please leave at the back door');
+        $this->minkContext->getSession()->wait(1000);
+        $this->minkContext->assertElementContainsText('#modal-delivery-info', 'Please leave at the back door');
     }
     
     /**
@@ -534,8 +547,8 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iShouldReturnToTheOrderConfirmationModal()
     {
-        $this->assertElementExists('#order-confirmation-modal');
-        $this->assertElementContainsText('.modal-title', 'Confirm Your Order');
+        $this->minkContext->assertElementExists('#order-confirmation-modal');
+        $this->minkContext->assertElementContainsText('.modal-title', 'Confirm Your Order');
     }
     
     /**
@@ -543,9 +556,9 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function theDeliveryInformationShouldShowMySelectedDateAndTime()
     {
-        $this->assertElementExists('#modal-delivery-info');
-        $this->assertElementContainsText('#modal-delivery-info', 'Delivery Date:');
-        $this->assertElementContainsText('#modal-delivery-info', 'Delivery Time:');
+        $this->minkContext->assertElementExists('#modal-delivery-info');
+        $this->minkContext->assertElementContainsText('#modal-delivery-info', 'Delivery Date:');
+        $this->minkContext->assertElementContainsText('#modal-delivery-info', 'Delivery Time:');
     }
     
     /**
@@ -553,7 +566,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function myDeliveryNotesShouldBeDisplayed()
     {
-        $this->assertElementContainsText('#modal-delivery-info', 'Call when you arrive');
+        $this->minkContext->assertElementContainsText('#modal-delivery-info', 'Call when you arrive');
     }
     
     /**
@@ -561,7 +574,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function theOrderShouldBePlacedSuccessfully()
     {
-        $this->getSession()->wait(3000); // Wait for order processing
+        $this->minkContext->getSession()->wait(3000); // Wait for order processing
         // This would check for success message or redirect
     }
     
@@ -570,7 +583,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iShouldSeeAConfirmationMessage()
     {
-        $this->assertPageContainsText('Order placed successfully');
+        $this->minkContext->assertPageContainsText('Order placed successfully');
     }
     
     /**
@@ -583,9 +596,9 @@ class DeliveryFeatureContext extends MinkContext implements Context
         $this->iSelectTheTimeSlot('10:00');
         $this->iEnterInTheDeliveryNotesField('Test delivery notes');
         $this->iClick('Reserve Delivery Slot');
-        $this->getSession()->wait(1000);
+        $this->minkContext->getSession()->wait(1000);
         $this->iClick('Proceed with Order');
-        $this->assertPageContainsText('Order placed successfully');
+        $this->minkContext->assertPageContainsText('Order placed successfully');
     }
     
     /**
@@ -593,7 +606,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iNavigateToMyProfilePage()
     {
-        $this->visit('/profile.php');
+        $this->minkContext->visit('/profile.php');
     }
     
     /**
@@ -610,7 +623,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return false;
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("No orders found in the order history");
@@ -622,7 +635,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iShouldSeeTheOrderDetails()
     {
-        $this->assertElementExists('#order-details-text');
+        $this->minkContext->assertElementExists('#order-details-text');
         $this->assertElementIsVisible('#order-details-section');
     }
     
@@ -631,8 +644,8 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function theDetailsShouldIncludeMySelectedDeliverySlot()
     {
-        $this->assertElementExists('#delivery-slot-info');
-        $this->assertElementContainsText('#detail-delivery-slot', ':');
+        $this->minkContext->assertElementExists('#delivery-slot-info');
+        $this->minkContext->assertElementContainsText('#detail-delivery-slot', ':');
     }
     
     /**
@@ -642,8 +655,8 @@ class DeliveryFeatureContext extends MinkContext implements Context
     {
         // This would require database access to simulate another reservation
         // For now, we'll use a future date that we'll try to reserve in the next step
-        $this->getSession()->setCustomParam('reservedTime', $timeSlot);
-        $this->getSession()->setCustomParam('reservedDate', date('Y-m-d', strtotime('+4 days')));
+        $this->minkContext->getSession()->setCustomParam('reservedTime', $timeSlot);
+        $this->minkContext->getSession()->setCustomParam('reservedDate', date('Y-m-d', strtotime('+4 days')));
     }
     
     /**
@@ -666,7 +679,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return Array.from(document.querySelectorAll('.time-slot.disabled')).length > 0;
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("No disabled time slots found");
@@ -683,7 +696,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return disabledSlot && disabledSlot.classList.contains('disabled');
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Disabled slot can still be selected");
@@ -710,7 +723,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return false;
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Could not navigate to last day of current month");
@@ -730,13 +743,13 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     public function iShouldSeeAvailableTimeSlotsForThatDate()
     {
-        $this->assertElementExists('#time-slots-grid');
+        $this->minkContext->assertElementExists('#time-slots-grid');
         
         $script = "
             return Array.from(document.querySelectorAll('.time-slot:not(.disabled)')).length > 0;
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("No available time slots found for the selected date");
@@ -763,7 +776,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
             return false;
         ";
         
-        $result = $this->getSession()->evaluateScript($script);
+        $result = $this->minkContext->getSession()->evaluateScript($script);
         
         if (!$result) {
             throw new \Exception("Could not select first day of next month");
@@ -775,7 +788,7 @@ class DeliveryFeatureContext extends MinkContext implements Context
      */
     protected function assertElementIsVisible($selector)
     {
-        $element = $this->getSession()->getPage()->find('css', $selector);
+        $element = $this->minkContext->getSession()->getPage()->find('css', $selector);
         
         if (!$element) {
             throw new \Exception("Element '$selector' not found.");
